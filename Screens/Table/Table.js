@@ -4,7 +4,6 @@ import { format } from 'date-fns'
 import moment from 'moment';
 const Table = () => {
 
-
     // const [time, setTime] = useState(0);
     // const [isTiming, setIsTiming] = useState(false);
     // const [isStopTiming, setIsStopTiming] = useState(false);
@@ -50,6 +49,7 @@ const Table = () => {
     const [elapTime, setElapTime] = useState(0);
 
     const [saveTime, setSaveTime] = useState([])
+    // const [saveType, setSaveType] = useState(null);
 
     // useEffect(() => {
     //     let timer;
@@ -70,6 +70,7 @@ const Table = () => {
             setElapTime(now - startTime);
             timer = setTimeout(updateElapsedTime, 1);
         };
+
         if (isRunning) {
             updateElapsedTime();
         } else {
@@ -78,8 +79,19 @@ const Table = () => {
 
         return () => clearTimeout(timer);
     }, [isRunning, startTime]);
-
     const handleRun = async () => {
+        // if (isRunning) {
+        //     await setIsRunning(false);
+        //     const now = new Date().getTime();
+        //     setElapTime(now - startTime);
+        //     setSaveTime(prevSaveTime => {
+        //         const lastSavedTime = prevSaveTime.length > 0 ? prevSaveTime[prevSaveTime.length - 1].timeAfter : '00:00:00';
+        //         return [
+        //             ...prevSaveTime,
+        //             { name: 'Paused', timeBefore: lastSavedTime, timeAfter: formattedTime(now - startTime) },
+        //         ];
+        //     });
+        // } 
         if (isRunning) {
             await setIsRunning(false);
             const now = new Date().getTime();
@@ -90,22 +102,30 @@ const Table = () => {
             await setIsRunning(true);
         }
     };
+
     const handleResetTime = () => {
         setIsRunning(false)
         setElapTime(0)
         setSaveTime([])
+        // setSaveTime(null)
     }
-    const handleSaveTimeVA = () => {
+    const handleSaveTime = (type) => {
         if (isRunning) {
             const currentElapsedTime = new Date().getTime() - startTime;
             const formattedTimeValue = formattedTime(currentElapsedTime);
-            setSaveTime((prevSaveTime) => [
-                ...prevSaveTime,
-                { name: 'VA', value: formattedTimeValue },
-            ]);
+            setSaveTime((prevSaveTime) => {
+                // console.log(prevSaveTime);
+                //tạo biến lastSavedTime kiểm tra xem có thời gian nào được lưu trước đó chưa nếu chưa mặc định sẽ là 00:00:00 hoặc nếu có thì sẽ lấy timeAfter ra 
+                const lastSavedTime = prevSaveTime.length > 0 ? prevSaveTime[prevSaveTime.length - 1].timeAfter : '00:00:00';
+                return [
+                    ...prevSaveTime,
+                    { name: type, timeBefore: lastSavedTime, timeAfter: formattedTimeValue },
+                ]
+            });
+            // setSaveType(type)
         }
     };
-    console.log(saveTime);
+    // console.log(saveTime);
     //Định dạng kiểu 00:00:00
     const formattedTime = (time) => {
         const minutes = format(time, "mm");
@@ -118,46 +138,38 @@ const Table = () => {
         <View style={{ height: '100%', backgroundColor: '#ffffff' }}>
             <View style={{ flex: 1 }}>
                 <View style={{ width: '100%', height: 40, flexDirection: 'row' }}>
-                    <View style={{ justifyContent: 'center', fontWeight: 'bold', width: '50%', height: '100%', paddingHorizontal: 10, borderRightWidth: 2, borderColor: '#ffffff', backgroundColor: '#27a9ff', alignItems: 'center' }}><Text style={{ color: '#ffffff', fontWeight: 'bold' }}>NVA</Text></View>
                     <View style={{ justifyContent: 'center', fontWeight: 'bold', width: '50%', height: '100%', paddingHorizontal: 10, borderRightWidth: 2, borderColor: '#ffffff', backgroundColor: '#27a9ff', alignItems: 'center' }}><Text style={{ color: '#ffffff', fontWeight: 'bold' }}>VA</Text></View>
+                    <View style={{ justifyContent: 'center', fontWeight: 'bold', width: '50%', height: '100%', paddingHorizontal: 10, borderRightWidth: 2, borderColor: '#ffffff', backgroundColor: '#27a9ff', alignItems: 'center' }}><Text style={{ color: '#ffffff', fontWeight: 'bold' }}>NVA</Text></View>
                 </View>
                 <ScrollView>
                     <View style={{ flexDirection: 'row' }}>
-                        {/* <View style={{ height: 400, flexDirection: 'column', marginTop: 2, width: '50%' }}>
-                            {saveTime.map((value, index) => {
+                        <View style={{ flexDirection: 'column', marginTop: 2, width: '50%' }}>
+                            {saveTime?.filter(item => item?.name == 'VA').map((value, index) => {
                                 return (
-                                    <View key={index} style={{ marginTop: 1, justifyContent: 'center', fontWeight: 'bold', height: 40, width: '100%', paddingHorizontal: 10, borderRightWidth: 2, borderColor: '#ffffff', backgroundColor: '#d1d1d1', alignItems: 'center' }}><Text style={{ color: '#202020', fontWeight: 'bold' }}>{formattedTime(value)}</Text></View>
+                                    <View key={index} style={{ marginTop: 1, justifyContent: 'center', fontWeight: 'bold', height: 40, width: '100%', paddingHorizontal: 10, borderRightWidth: 2, borderColor: '#ffffff', backgroundColor: '#d1d1d1', alignItems: 'center' }}><Text style={{ color: '#202020', fontWeight: 'bold' }}>{value?.timeAfter}</Text></View>
                                 )
                             })}
-                        </View> */}
-                        {/* <View style={{ height: 400, flexDirection: 'column', marginTop: 2, width: '50%' }}>
-                            {saveTimeVA.map((value, index) => {
+                        </View>
+                        <View style={{ flexDirection: 'column', marginTop: 2, width: '50%' }}>
+                            {saveTime?.filter(item => item?.name == 'NVA').map((value, index) => {
                                 return (
-                                    <View key={index} style={{ marginTop: 1, justifyContent: 'center', fontWeight: 'bold', height: 40, width: '100%', paddingHorizontal: 10, borderRightWidth: 2, borderColor: '#ffffff', backgroundColor: '#d1d1d1', alignItems: 'center' }}><Text style={{ color: '#202020', fontWeight: 'bold' }}>{formattedTime(value)}</Text></View>
+                                    <View key={index} style={{ marginTop: 1, justifyContent: 'center', fontWeight: 'bold', height: 40, width: '100%', paddingHorizontal: 10, borderRightWidth: 2, borderColor: '#ffffff', backgroundColor: '#d1d1d1', alignItems: 'center' }}><Text style={{ color: '#202020', fontWeight: 'bold' }}>{value?.timeAfter}</Text></View>
                                 )
                             })}
-                        </View> */}
-
+                        </View>
                     </View>
                 </ScrollView>
-            </View >
+            </View>
             <View style={{ height: 500 }}>
-                <View style={{ height: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                    <Text style={{ fontSize: 36 }}>{formattedTime(elapTime)}</Text>
-                </View>
+                <View style={{ height: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}><Text style={{ fontSize: 36 }}>{formattedTime(elapTime)}</Text></View>
                 <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 10, gap: 10 }}>
-                    <View>
-                        <TouchableOpacity onPress={() => handleRun()} style={{ backgroundColor: '#d1d1d1', padding: 5, borderRadius: 5, width: 50 }}>
-                            <Text style={{ textAlign: 'center' }}>{!isRunning ? "Chạy" : "Dừng"}</Text>
-                        </TouchableOpacity>
-                    </View>
-                    {/* <View><TouchableOpacity onPress={handleSaveTimeNVA} style={{ backgroundColor: '#d1d1d1', padding: 5, borderRadius: 5, width: 50 }}><Text style={{ textAlign: 'center' }}>NVA</Text></TouchableOpacity></View> */}
-                    <View><TouchableOpacity onPress={handleSaveTimeVA} style={{ backgroundColor: '#d1d1d1', padding: 5, borderRadius: 5, width: 50 }}><Text style={{ textAlign: 'center' }}>VA</Text></TouchableOpacity></View>
-                    <View><TouchableOpacity onPress={handleResetTime} style={{ backgroundColor: '#d1d1d1', padding: 5, borderRadius: 5, width: 50 }}><Text style={{ textAlign: 'center' }}>Reset</Text></TouchableOpacity></View>
+                    <View><TouchableOpacity onPress={() => handleRun()} style={{ backgroundColor: '#d1d1d1', padding: 5, borderRadius: 5, width: 50 }}><Text style={{ textAlign: 'center' }}>{!isRunning ? "Chạy" : "Dừng"}</Text></TouchableOpacity></View>
+                    <View><TouchableOpacity onPress={() => handleSaveTime('VA')} style={{ backgroundColor: '#d1d1d1', padding: 5, borderRadius: 5, width: 50 }}><Text style={{ textAlign: 'center' }}>VA</Text></TouchableOpacity></View>
+                    <View><TouchableOpacity onPress={() => handleSaveTime('NVA')} style={{ backgroundColor: '#d1d1d1', padding: 5, borderRadius: 5, width: 50 }}><Text style={{ textAlign: 'center' }}>NVA</Text></TouchableOpacity></View>
+                    <View><TouchableOpacity onPress={() => handleResetTime()} style={{ backgroundColor: '#d1d1d1', padding: 5, borderRadius: 5, width: 50 }}><Text style={{ textAlign: 'center' }}>Reset</Text></TouchableOpacity></View>
                 </View>
             </View>
-        </View >
+        </View>
     )
 }
-
 export default Table
